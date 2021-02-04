@@ -72,12 +72,8 @@ JQ6500_Serial mp3(D5, D6);
 SFEVL53L1X distanceSensor(Wire); //, SHUTDOWN_PIN, INTERRUPT_PIN);
 
 int count, count1, token, bt, button, longpress, Distance0 = 0;
-int threadhold, direction, led1, led2, btn, modality, tx, rx;
-unsigned long t0;
-unsigned long t;
-
-unsigned long dtime0;
-unsigned long dtime1;
+int threadhold, direction, led1, led2, btn, modality, tx, rx, mcount;
+unsigned long t, t0, mdelay, dtime0, dtime1, rtime;
 
 static int NOBODY = 0;
 static int SOMEONE = 1;
@@ -95,8 +91,8 @@ static int center[2] = {167, 231}; // {21, 85}; these are the spad center of the
 // 239: quasi sempre tra i 1500 e i 2000
 static int Zone = 0;
 
-static int ROI_height = 7;
-static int ROI_width = 7;
+static int ROI_height = 6;
+static int ROI_width = 6;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -321,39 +317,151 @@ String saveParams(AutoConnectAux &aux, PageArgument &args)
 
 String saveSETTINGParams(AutoConnectAux &aux, PageArgument &args)
 {
-  String threadhold = args.arg("threadhold");
-  threadhold.trim();
+  String _threadhold = args.arg("threadhold");
+  _threadhold.trim();
+  threadhold = _threadhold.toInt();
 
-  String direction = args.arg("direction");
-  direction.trim();
+  String _mcount = args.arg("mcount");
+  _mcount.trim();
+  mcount = _mcount.toInt();
 
-  String led1 = args.arg("led1");
-  led1.trim();
+  String _mdelay = args.arg("mdelay");
+  _mdelay.trim();
+  mdelay = _mdelay.toInt();
 
-  String led2 = args.arg("led2");
-  led2.trim();
+  String _direction = args.arg("direction");
+  _direction.trim();
+  if (_direction == "좌->우")
+  {
+    center[0] = 167;
+    center[1] = 231;
+  }
+  if (_direction == "우->좌")
+  {
+    center[0] = 231;
+    center[1] = 167;
+  }
+  if (_direction == "위->아래")
+  {
+    center[0] = 188;
+    center[1] = 68;
+  }
+  if (_direction == "아래->위")
+  {
+    center[0] = 68;
+    center[1] = 188;
+  }
 
-  String button = args.arg("button");
-  button.trim();
+  String _led1 = args.arg("led1");
+  _led1.trim();
+  if (_led1 == "D0")
+  {
+    led1 = D0;
+  }
+  if (_led1 == "D3")
+  {
+    led1 = D3;
+  }
+  if (_led1 == "D4")
+  {
+    led1 = D4;
+  }
+  if (_led1 == "D7")
+  {
+    led1 = D7;
+  }
+  if (_led1 == "D8")
+  {
+    led1 = D8;
+  }
+  if (_led1 == "사용안함")
+  {
+    led1 = 100;
+  }
 
-  String modality = args.arg("modality");
-  modality.trim();
+  String _led2 = args.arg("led2");
+  _led2.trim();
+  if (_led2 == "D0")
+  {
+    led2 = D0;
+  }
+  if (_led2 == "D3")
+  {
+    led2 = D3;
+  }
+  if (_led2 == "D4")
+  {
+    led2 = D4;
+  }
+  if (_led2 == "D7")
+  {
+    led2 = D7;
+  }
+  if (_led2 == "D8")
+  {
+    led2 = D8;
+  }
+  if (_led2 == "사용안함")
+  {
+    led2 = 100;
+  }
+
+  String _button = args.arg("button");
+  _button.trim();
+  if (_button == "D0")
+  {
+    button = D0;
+  }
+  if (_button == "D3")
+  {
+    button = D3;
+  }
+  if (_button == "D4")
+  {
+    button = D4;
+  }
+  if (_button == "D7")
+  {
+    button = D7;
+  }
+  if (_button == "D8")
+  {
+    button = D8;
+  }
+  if (_button == "사용안함")
+  {
+    button = 100;
+  }
+
+  String _modality = args.arg("modality");
+  _modality.trim();
+  if (_modality == "위장조영")
+  {
+    modality = 1;
+  }
+  else
+  {
+    modality = 2;
+  }
+  modality = _modality.toInt();
 
   // The entered value is owned by AutoConnectAux of /setting.
   // To retrieve the elements of /setting, it is necessary to get
   // the AutoConnectAux object of /setting.
   File param = FlashFS.open(SETTING_PARAM_FILE, "w");
-  portal.aux("/setting")->saveElement(param, {"threadhold", "direction", "led1", "led2", "button", "modality"});
+  portal.aux("/setting")->saveElement(param, {"threadhold", "mdelay", "direction", "led1", "led2", "button", "modality"});
   param.close();
 
   // Echo back saved parameters to AutoConnectAux page.
   AutoConnectText &echo = aux["parameters"].as<AutoConnectText>();
-  echo.value = "감지거리: " + threadhold + "<br>";
-  echo.value += "감지방향: " + direction + "<br>";
-  echo.value += "LED1: " + led1 + "<br>";
-  echo.value += "LED2: " + led2 + "<br>";
-  echo.value += "버튼: " + button + " <br>";
-  echo.value += "검사실: " + modality + "<br>";
+  echo.value = "감지거리: " + _threadhold + "<br>";
+  echo.value += "지연시간: " + _mdelay + "<br>";
+  echo.value += "감지방향: " + _direction + "<br>";
+  echo.value += "LED1: " + _led1 + "<br>";
+  echo.value += "LED2: " + _led2 + "<br>";
+  echo.value += "버튼: " + _button + " <br>";
+  echo.value += "검사실: " + _modality + "<br>";
+  echo.value += "tt: " + String(mdelay) + "<br>";
 
   return String("");
 }
@@ -987,8 +1095,14 @@ int ProcessPeopleCountingData(int16_t Distance, uint8_t zone)
       AnEventHasOccured = 1;
       if (CurrentZoneStatus == SOMEONE)
       {
+        if (millis()-rtime>30000)
+        {
+          count=0;
+          
+        }
         analogWrite(led2, 50);
         AllZonesCurrentStatus += 2;
+        rtime=millis();
       }
       else
       {
@@ -1242,9 +1356,10 @@ void setup(void)
     AutoConnectSelect &_led2 = sensor_setting["led2"].as<AutoConnectSelect>();
     AutoConnectSelect &_button = sensor_setting["button"].as<AutoConnectSelect>();
     AutoConnectSelect &_modality = sensor_setting["modality"].as<AutoConnectSelect>();
+    AutoConnectInput &_mdelay = sensor_setting["mdelay"].as<AutoConnectInput>();
+    AutoConnectInput &_mcount = sensor_setting["mcount"].as<AutoConnectInput>();
 
-
-    _apid.value = "APID:" + config.apid + "<br>";
+    _apid.value = "APID:" + config.apid + "<br>" + "버전:";
     threadhold = _thread.value.toInt();
     if (_direction.value() == "좌->우")
     {
@@ -1259,77 +1374,67 @@ void setup(void)
     else if (_direction.value() == "위->아래")
     {
       center[0] = 188;
-      center[1] = 88;
+      center[1] = 68;
     }
     else if (_direction.value() == "아래->위")
     {
-      center[0] = 88;
+      center[0] = 68;
       center[1] = 188;
     }
 
     if (_led1.value() == "D0")
       led1 = D0;
-    else if (_led1.value() == "D1")
-      led1 = D1;
-    else if (_led1.value() == "D2")
-      led1 = D2;
     else if (_led1.value() == "D3")
       led1 = D3;
     else if (_led1.value() == "D4")
       led1 = D4;
-    else if (_led1.value() == "D5")
-      led1 = D5;
-    else if (_led1.value() == "D6")
-      led1 = D6;
     else if (_led1.value() == "D7")
       led1 = D7;
     else if (_led1.value() == "D8")
       led1 = D8;
+    else if (_button.value() == "사용안함")
+      led1 = 100;
+
     if (_led2.value() == "D0")
       led2 = D0;
-
-    else if (_led2.value() == "D1")
-      led2 = D1;
-    else if (_led2.value() == "D2")
-      led2 = D2;
     else if (_led2.value() == "D3")
       led2 = D3;
     else if (_led2.value() == "D4")
       led2 = D4;
-    else if (_led2.value() == "D5")
-      led2 = D5;
-    else if (_led2.value() == "D6")
-      led2 = D6;
     else if (_led2.value() == "D7")
       led2 = D7;
     else if (_led2.value() == "D8")
       led2 = D8;
+    else if (_button.value() == "사용안함")
+      led2 = 100;
 
     if (_button.value() == "D0")
       btn = D0;
-    else if (_button.value() == "D1")
-      btn = D1;
-    else if (_button.value() == "D2")
-      btn = D2;
     else if (_button.value() == "D3")
       btn = D3;
     else if (_button.value() == "D4")
       btn = D4;
-    else if (_button.value() == "D5")
-      btn = D5;
-    else if (_button.value() == "D6")
-      btn = D6;
     else if (_button.value() == "D7")
       btn = D7;
     else if (_button.value() == "D8")
       btn = D8;
     else if (_button.value() == "사용안함")
-      btn = 0;
+      btn = 100;
 
     if (_modality.selected == 1)
       modality = 1;
     else
       modality = 2;
+
+    if (_mcount.value.length()>0)
+    {
+      mcount = _mcount.value.toInt();
+    }
+
+    if (_mdelay.value.length() > 0)
+    {
+      mdelay = _mdelay.value.toInt();
+    }
 
     portal.on(AUX_SETTING, loadSETTINGParams);
     portal.on(AUX_SETTINGSAVE, saveSETTINGParams);
@@ -1352,12 +1457,22 @@ void setup(void)
   if (distanceSensor.init() == false)
     Serial.println("Sensor online!");
   distanceSensor.setIntermeasurementPeriod(100);
-  //distanceSensor.setDistanceModeLong();
-  distanceSensor.setDistanceModeShort();
+  distanceSensor.setDistanceModeLong();
+  //distanceSensor.setDistanceModeShort();
 
-  pinMode(btn, INPUT_PULLUP);
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
+  if (btn != 100)
+  {
+    pinMode(btn, INPUT_PULLUP);
+  }
+  if (led1 != 100)
+  {
+    pinMode(led1, OUTPUT);
+  }
+  if (led2 != 100)
+  {
+    pinMode(led2, OUTPUT);
+  }
+
   pinMode(BUILTIN_LED, OUTPUT);
 
   mp3.begin(9600);
@@ -1438,14 +1553,14 @@ void loop(void)
     token = 1;
   }
 
-  if ((count >= modality) && (token == 1)) //modality가 위장조영은 1, 유방촬영은 2
+  if ((count >= mcount) && (token == 1)) //modality가 위장조영은 1, 유방촬영은 2
   {
     if (dtime0 == 0)
     {
       dtime0 = millis();
     }
     dtime1 = millis();
-    if ((dtime1 - dtime0 > 10))
+    if (dtime1 - dtime0 > mdelay)
     {
       mp3.playFileByIndexNumber(modality);
       token = 0;

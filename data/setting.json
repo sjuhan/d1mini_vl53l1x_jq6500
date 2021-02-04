@@ -33,6 +33,24 @@
       "label": "감지거리"
     },
     {
+      "name": "mdelay",
+      "type": "ACInput",
+      "value": "900",
+      "label": "지연시간",
+      "pattern": "",
+      "placeholder": "",
+      "apply": "text"
+    },
+    {
+      "name": "mcount",
+      "type": "ACInput",
+      "value": "1",
+      "label": "감지횟수",
+      "pattern": "",
+      "placeholder": "",
+      "apply": "text"
+    },
+    {
       "name": "direction",
       "type": "ACSelect",
       "label": "감지방향",
@@ -46,54 +64,44 @@
     {
       "name": "led1",
       "type": "ACSelect",
-      "label": "LED1",
       "option": [
         "D0",
-        "D1",
-        "D2",
         "D3",
         "D4",
-        "D5",
-        "D6",
-        "D7",
-        "D8"
-      ],
-      "selected": 7
-    },
-    {
-      "name": "led2",
-      "type": "ACSelect",
-      "label": "LED2",
-      "option": [
-        "D0",
-        "D1",
-        "D2",
-        "D3",
-        "D4",
-        "D5",
-        "D6",
-        "D7",
-        "D8"
-      ],
-      "selected": 8
-    },
-    {
-      "name": "button",
-      "type": "ACSelect",
-      "label": "버튼",
-      "option": [
-        "D0",
-        "D1",
-        "D2",
-        "D3",
-        "D4",
-        "D5",
-        "D6",
         "D7",
         "D8",
         "사용안함"
       ],
-      "selectd": 10
+      "label": "LED1",
+      "selected": 4
+    },
+    {
+      "name": "led2",
+      "type": "ACSelect",
+      "option": [
+        "D0",
+        "D3",
+        "D4",
+        "D7",
+        "D8",
+        "사용안함"
+      ],
+      "label": "LED2",
+      "selected": 5
+    },
+    {
+      "name": "button",
+      "type": "ACSelect",
+      "option": [
+        "D0",
+        "D3",
+        "D4",
+        "D7",
+        "D8",
+        "사용안함"
+      ],
+      "label": "버튼",
+      "selected": 6
     },
     {
       "name": "modality",
